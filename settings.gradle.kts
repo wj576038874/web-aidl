@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "example"
+rootProject.name = "web-aidl"
 include(":app")
  
