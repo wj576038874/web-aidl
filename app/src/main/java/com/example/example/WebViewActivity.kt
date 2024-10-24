@@ -3,13 +3,16 @@ package com.example.example
 import android.content.ComponentName
 import android.content.Intent
 import android.content.ServiceConnection
+import android.graphics.Bitmap
 import android.os.Bundle
 import android.os.IBinder
 import android.util.Log
+import android.view.View
 import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
+import androidx.activity.addCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -24,6 +27,7 @@ class WebViewActivity : AppCompatActivity() {
 
     private lateinit var countDownLatch: CountDownLatch
 
+    private lateinit var progressBar: WebViewProgressBar
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,6 +39,7 @@ class WebViewActivity : AppCompatActivity() {
             insets
         }
         webView = findViewById(R.id.web)
+        progressBar = findViewById(R.id.progress)
 
         Toast.makeText(this, MyInstance.getInstance().getNum().toString(), Toast.LENGTH_SHORT)
             .show()
@@ -42,9 +47,21 @@ class WebViewActivity : AppCompatActivity() {
         webView.settings.javaScriptEnabled = true
         webView.addJavascriptInterface(MyJavaScripInterface(this), "Android")
         webView.webViewClient = object : WebViewClient() {
+            override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
+                super.onPageStarted(view, url, favicon)
+                progressBar.visibility = View.VISIBLE
+            }
+            override fun onPageFinished(view: WebView?, url: String?) {
+                super.onPageFinished(view, url)
+                progressBar.visibility = View.GONE
+            }
         }
 
         webView.webChromeClient = object : WebChromeClient() {
+            override fun onProgressChanged(view: WebView?, newProgress: Int) {
+                super.onProgressChanged(view, newProgress)
+                progressBar.setProgress(newProgress)
+            }
         }
 
         val url = intent.getStringExtra("url")
@@ -86,6 +103,14 @@ class WebViewActivity : AppCompatActivity() {
                 "asd",
                 "onServiceConnected" + Thread.currentThread().name + binder?.numString
             )
+        }
+    }
+
+    override fun onBackPressed() {
+        if (webView.canGoBack()){
+            webView.goBack()
+        }else{
+            super.onBackPressed()
         }
     }
 }
